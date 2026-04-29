@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -27,7 +27,7 @@ enum LessonType {
 }
 
 model User {
-  id                String          @id @default(cuid())
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
   name              String
   email             String          @unique
   password          String
@@ -35,8 +35,8 @@ model User {
   avatarUrl         String?
   bio               String?
   referralCode      String          @unique
-  referredById      String?
-  referredBy        User?           @relation("UserReferrals", fields: [referredById], references: [id])
+  referredById      String?         @db.ObjectId
+  referredBy        User?           @relation("UserReferrals", fields: [referredById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   referrals         User[]          @relation("UserReferrals")
   streakCount       Int             @default(0)
   totalPoints       Int             @default(0)
@@ -50,7 +50,7 @@ model User {
 }
 
 model Course {
-  id                String          @id @default(cuid())
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
   title             String
   slug              String          @unique
   description       String
@@ -64,9 +64,9 @@ model Course {
 }
 
 model Lesson {
-  id                String          @id @default(cuid())
-  courseId          String
-  course            Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  courseId          String          @db.ObjectId
+  course            Course          @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   title             String
   slug              String
   type              LessonType
@@ -82,11 +82,11 @@ model Lesson {
 }
 
 model Progress {
-  id                String          @id @default(cuid())
-  userId            String
-  lessonId          String
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson            Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String          @db.ObjectId
+  lessonId          String          @db.ObjectId
+  user              User            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lesson            Lesson          @relation(fields: [lessonId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   completed         Boolean         @default(false)
   score             Int             @default(0)
   fluencyScore      Int             @default(0)
@@ -100,29 +100,29 @@ model Progress {
 }
 
 model Certificate {
-  id                String          @id @default(cuid())
-  userId            String
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String          @db.ObjectId
+  user              User            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   title             String
-  courseId          String?
+  courseId          String?         @db.ObjectId
   issuedAt          DateTime        @default(now())
   certificateUrl    String?
 }
 
 model Announcement {
-  id                String          @id @default(cuid())
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
   title             String
   body              String
   published         Boolean         @default(true)
   createdAt         DateTime        @default(now())
-  authorId          String
-  author            User            @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId          String          @db.ObjectId
+  author            User            @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Conversation {
-  id                String          @id @default(cuid())
-  userId            String
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String          @db.ObjectId
+  user              User            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   topic             String
   transcript        Json
   feedback          String?

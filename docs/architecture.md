@@ -3,7 +3,7 @@
 ## Runtime split
 
 - `Next.js app`: frontend, route handlers, SSR, SEO pages, admin interface
-- `PostgreSQL + Prisma`: source of truth for users, courses, lessons, progress, certificates
+- `MongoDB + Prisma`: source of truth for users, courses, lessons, progress, certificates
 - `Socket.io gateway`: realtime speaking room events and coaching prompts
 - `OpenAI service layer`: speaking evaluation, grammar feedback, tutor conversations
 

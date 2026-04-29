@@ -11,7 +11,7 @@ export const courseSchema = z.object({
 });
 
 export const lessonSchema = z.object({
-  courseId: z.string().cuid(),
+  courseId: z.string().min(1),
   title: z.string().min(3),
   slug: z.string().min(3),
   type: z.nativeEnum(LessonType),

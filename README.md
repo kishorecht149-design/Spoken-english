@@ -1,11 +1,11 @@
 # SpokenPro
 
-Production-ready spoken English learning platform built with Next.js App Router, Prisma, JWT auth, OpenAI integration, and an admin panel.
+Production-ready spoken English learning platform built with Next.js App Router, Prisma, JWT auth, OpenAI integration, MongoDB, and an admin panel.
 
 ## Stack
 
 - Next.js 15 + TypeScript + Tailwind CSS + Framer Motion
-- PostgreSQL + Prisma ORM
+- MongoDB + Prisma ORM
 - JWT cookie-based authentication with admin/student RBAC
 - OpenAI API for speaking evaluation and tutor conversation
 - Socket.io realtime practice gateway for live coaching events
@@ -17,7 +17,7 @@ Production-ready spoken English learning platform built with Next.js App Router,
 2. Install dependencies with `npm install`.
 3. Run Prisma:
    - `npm run db:generate`
-   - `npm run db:migrate`
+   - `npm run db:push`
    - `npm run db:seed`
 4. Start the app with `npm run dev`.
 5. Start the realtime gateway in a second terminal with `npm run realtime:dev`.
@@ -39,7 +39,7 @@ Production-ready spoken English learning platform built with Next.js App Router,
 ## Shipping notes
 
 - Deploy the Next.js app to Vercel.
-- Deploy PostgreSQL on Supabase or Render Postgres.
+- Deploy MongoDB on MongoDB Atlas.
 - Deploy `realtime-server` to Render for persistent websocket support.
 - Store secrets in platform environment settings, not in source control.
 

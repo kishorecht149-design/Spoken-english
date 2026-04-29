@@ -4,7 +4,7 @@
 
 - Vercel: Next.js app, frontend, and Next.js API routes
 - Render: Socket.io realtime server from `realtime-server/index.ts`
-- PostgreSQL: Supabase or Render Postgres
+- MongoDB: MongoDB Atlas
 
 ## Vercel
 
@@ -25,7 +25,7 @@
    - `STRIPE_WEBHOOK_SECRET`
    - `RAZORPAY_KEY_ID`
    - `RAZORPAY_KEY_SECRET`
-6. After the first deploy, run `npx prisma migrate deploy` and `npm run db:seed` against production once.
+6. After the first deploy, run `npx prisma db push` and `npm run db:seed` against production once.
 
 ## Render realtime backend
 
@@ -40,11 +40,11 @@
 
 The included `render.yaml` can also be used for Render Blueprint deploys.
 
-## PostgreSQL
+## MongoDB
 
-- Supabase or Render Postgres both work.
+- MongoDB Atlas works well for this setup.
 - Set the same `DATABASE_URL` in Vercel and your local `.env`.
-- For production-safe migrations, use `npx prisma migrate deploy`.
+- For schema sync, use `npx prisma db push`.
 
 ## OpenAI
 
