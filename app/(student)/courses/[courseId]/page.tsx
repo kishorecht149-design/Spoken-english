@@ -1,6 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, CalendarDays, CheckCircle2, Clock, GraduationCap, Mic2, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  GraduationCap,
+  Mic2,
+  PlayCircle,
+  Sparkles,
+  Video
+} from "lucide-react";
 import { StudentShell } from "@/components/dashboard/student-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +21,60 @@ import { requireUser } from "@/lib/auth/guards";
 import { percentage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+type VideoSource = {
+  kind: "iframe" | "video" | "link";
+  url: string;
+};
+
+function getVideoSource(mediaUrl: string | null): VideoSource | null {
+  if (!mediaUrl) return null;
+
+  try {
+    const url = new URL(mediaUrl);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+
+    const host = url.hostname.replace(/^www\./, "");
+    const directVideoPattern = /\.(mp4|webm|ogg)(\?.*)?$/i;
+
+    if (host === "youtu.be") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? { kind: "iframe", url: `https://www.youtube.com/embed/${videoId}` } : null;
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const videoId = url.searchParams.get("v");
+      const embedMatch = url.pathname.match(/^\/embed\/([^/?]+)/);
+      const shortsMatch = url.pathname.match(/^\/shorts\/([^/?]+)/);
+      const resolvedId = videoId || embedMatch?.[1] || shortsMatch?.[1];
+      return resolvedId ? { kind: "iframe", url: `https://www.youtube.com/embed/${resolvedId}` } : null;
+    }
+
+    if (host === "vimeo.com") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? { kind: "iframe", url: `https://player.vimeo.com/video/${videoId}` } : null;
+    }
+
+    if (host === "player.vimeo.com") {
+      return { kind: "iframe", url: mediaUrl };
+    }
+
+    if (directVideoPattern.test(url.pathname)) {
+      return { kind: "video", url: mediaUrl };
+    }
+
+    return { kind: "link", url: mediaUrl };
+  } catch {
+    return null;
+  }
+}
+
+function getLessonObjective(content: unknown) {
+  if (!content || typeof content !== "object" || Array.isArray(content)) return null;
+
+  const objective = (content as { objective?: unknown }).objective;
+  return typeof objective === "string" ? objective : null;
+}
 
 export default async function CourseDetailsPage({
   params
@@ -122,6 +188,8 @@ export default async function CourseDetailsPage({
           {course.lessons.map((lesson) => {
             const lessonProgress = progress.find((item) => item.lessonId === lesson.id);
             const isComplete = Boolean(lessonProgress?.completed);
+            const videoSource = getVideoSource(lesson.mediaUrl);
+            const objective = getLessonObjective(lesson.content);
 
             return (
               <div
@@ -135,10 +203,53 @@ export default async function CourseDetailsPage({
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{lesson.title}</p>
                     <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{lesson.type}</span>
+                    {videoSource ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                        <PlayCircle className="h-3 w-3" />
+                        Video lesson
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Day {lesson.dayNumber}: learn, speak, receive feedback, and retry once.
+                    {objective || `Day ${lesson.dayNumber}: learn, speak, receive feedback, and retry once.`}
                   </p>
+                  {videoSource ? (
+                    <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-slate-950 shadow-sm">
+                      {videoSource.kind === "iframe" ? (
+                        <div className="aspect-video">
+                          <iframe
+                            className="h-full w-full"
+                            src={videoSource.url}
+                            title={`${lesson.title} video lesson`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : null}
+
+                      {videoSource.kind === "video" ? (
+                        <video className="aspect-video w-full bg-black" controls preload="metadata">
+                          <source src={videoSource.url} />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : null}
+
+                      {videoSource.kind === "link" ? (
+                        <a
+                          className="flex items-center justify-between gap-4 p-4 text-sm font-semibold text-white"
+                          href={videoSource.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <Video className="h-4 w-4 text-amber-300" />
+                            Open video lesson
+                          </span>
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />

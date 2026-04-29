@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, startTransition } from "react";
-import { BookOpenCheck, CheckCircle2, Clock, Loader2, Mic2, Plus, Rocket, UploadCloud } from "lucide-react";
+import { BookOpenCheck, CheckCircle2, Clock, Link2, Loader2, Mic2, PlayCircle, Plus, Rocket, UploadCloud, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ interface Course {
     type: LessonType;
     dayNumber: number;
     durationMinutes: number;
+    mediaUrl?: string | null;
   }>;
 }
 
@@ -32,6 +33,7 @@ interface TemplateLesson {
   type: LessonType;
   dayNumber: number;
   durationMinutes: number;
+  mediaUrl?: string;
   objective: string;
   activities: string[];
 }
@@ -164,6 +166,16 @@ const emptyCourse = {
   estimatedMinutes: 120
 };
 
+const emptyVideoLesson = {
+  courseId: "",
+  title: "",
+  slug: "",
+  dayNumber: 1,
+  durationMinutes: 12,
+  mediaUrl: "",
+  objective: ""
+};
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -180,6 +192,7 @@ async function parseError(response: Response) {
 export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }) {
   const [courses, setCourses] = useState(initialCourses);
   const [form, setForm] = useState(emptyCourse);
+  const [videoForm, setVideoForm] = useState(emptyVideoLesson);
   const [message, setMessage] = useState("");
   const [busyKey, setBusyKey] = useState("");
 
@@ -250,7 +263,7 @@ export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }
               activities: lesson.activities,
               speakingPrompt: "Record a short answer and improve it after AI feedback."
             },
-            mediaUrl: ""
+            mediaUrl: lesson.mediaUrl || ""
           })
         });
         if (!response.ok) throw new Error(await parseError(response));
@@ -283,6 +296,47 @@ export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }
         setMessage(`${course.title} is now ${course.published ? "unpublished" : "published"}.`);
       }
       setBusyKey("");
+    });
+  };
+
+  const createVideoLesson = () => {
+    startTransition(async () => {
+      const selectedCourse = courses.find((course) => course.id === videoForm.courseId);
+      const key = "video-lesson";
+
+      setBusyKey(key);
+      setMessage("");
+
+      try {
+        const response = await fetch("/api/lessons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseId: videoForm.courseId,
+            title: videoForm.title,
+            slug: videoForm.slug || slugify(videoForm.title),
+            type: "VIDEO",
+            dayNumber: videoForm.dayNumber,
+            durationMinutes: videoForm.durationMinutes,
+            mediaUrl: videoForm.mediaUrl,
+            content: {
+              objective: videoForm.objective || "Watch the video lesson, note three useful phrases, then practice them aloud.",
+              activities: ["Watch the full video", "Write down three useful expressions", "Record a short spoken summary"],
+              speakingPrompt: "Summarize the lesson in 45 seconds using your own words."
+            }
+          })
+        });
+
+        if (!response.ok) throw new Error(await parseError(response));
+
+        await refreshCourses();
+        setVideoForm(emptyVideoLesson);
+        setMessage(`Video lesson added${selectedCourse ? ` to ${selectedCourse.title}` : ""}.`);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not add video lesson.");
+      } finally {
+        setBusyKey("");
+      }
     });
   };
 
@@ -326,7 +380,7 @@ export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }
               <div className="mt-5 space-y-2">
                 {template.lessons.map((lesson) => (
                   <div key={lesson.slug} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3 text-sm">
-                    <Mic2 className="h-4 w-4 text-primary" />
+                    {lesson.type === "VIDEO" ? <PlayCircle className="h-4 w-4 text-primary" /> : <Mic2 className="h-4 w-4 text-primary" />}
                     <span>{lesson.title}</span>
                   </div>
                 ))}
@@ -390,6 +444,82 @@ export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }
         </Card>
 
         <Card className="rounded-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Video Lessons</p>
+          <h2 className="mt-2 font-display text-2xl font-bold">Add video by link</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Paste a YouTube, Vimeo, or direct MP4/WebM link. Students will see it as a playable video inside the course.
+          </p>
+          <div className="mt-5 space-y-3">
+            <select
+              className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-ring"
+              value={videoForm.courseId}
+              onChange={(event) => setVideoForm((current) => ({ ...current, courseId: event.target.value }))}
+            >
+              <option value="">Select course</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
+                </option>
+              ))}
+            </select>
+            <Input
+              placeholder="Video lesson title"
+              value={videoForm.title}
+              onChange={(event) =>
+                setVideoForm((current) => ({
+                  ...current,
+                  title: event.target.value,
+                  slug: current.slug || slugify(event.target.value)
+                }))
+              }
+            />
+            <Input
+              placeholder="video-lesson-slug"
+              value={videoForm.slug}
+              onChange={(event) => setVideoForm((current) => ({ ...current, slug: slugify(event.target.value) }))}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                type="number"
+                min={1}
+                placeholder="Day number"
+                value={videoForm.dayNumber}
+                onChange={(event) => setVideoForm((current) => ({ ...current, dayNumber: Number(event.target.value) }))}
+              />
+              <Input
+                type="number"
+                min={1}
+                placeholder="Duration minutes"
+                value={videoForm.durationMinutes}
+                onChange={(event) => setVideoForm((current) => ({ ...current, durationMinutes: Number(event.target.value) }))}
+              />
+            </div>
+            <div className="relative">
+              <Link2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-11"
+                placeholder="https://youtube.com/watch?v=... or https://example.com/video.mp4"
+                value={videoForm.mediaUrl}
+                onChange={(event) => setVideoForm((current) => ({ ...current, mediaUrl: event.target.value }))}
+              />
+            </div>
+            <Textarea
+              placeholder="What should students learn from this video?"
+              value={videoForm.objective}
+              onChange={(event) => setVideoForm((current) => ({ ...current, objective: event.target.value }))}
+            />
+            <Button
+              className="w-full gap-2"
+              onClick={createVideoLesson}
+              disabled={Boolean(busyKey) || !videoForm.courseId || !videoForm.title || !videoForm.mediaUrl}
+            >
+              {busyKey === "video-lesson" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+              Add Video Lesson
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="rounded-2xl lg:col-span-2">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Live Catalog</p>
           <h2 className="mt-2 font-display text-2xl font-bold">Published and draft courses</h2>
           <div className="mt-5 space-y-3">
@@ -408,6 +538,10 @@ export function CoursePublisher({ initialCourses }: { initialCourses: Course[] }
                       <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
                         <BookOpenCheck className="h-3 w-3" />
                         {course.lessons.length} lessons
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
+                        <Video className="h-3 w-3" />
+                        {course.lessons.filter((lesson) => lesson.type === "VIDEO" || lesson.mediaUrl).length} videos
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
                         <Clock className="h-3 w-3" />
