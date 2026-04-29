@@ -20,7 +20,9 @@ export default function SignupPage() {
     });
 
     if (!response.ok) {
-      setError("Unable to create your account.");
+      const data = await response.json().catch(() => null);
+      const issueMessage = data?.issues?.[0]?.message;
+      setError(issueMessage || data?.error || "Unable to create your account.");
       return;
     }
 
