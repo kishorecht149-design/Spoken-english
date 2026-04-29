@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prisma } from "@/lib/db/prisma";
 import { requireUser } from "@/lib/auth/guards";
-import { percentage } from "@/lib/utils";
+import { isMongoObjectId, percentage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +86,7 @@ export default async function CourseDetailsPage({
 
   const course = await prisma.course.findFirst({
     where: {
-      OR: [{ id: courseId }, { slug: courseId }]
+      OR: [{ slug: courseId }, ...(isMongoObjectId(courseId) ? [{ id: courseId }] : [])]
     },
     include: {
       lessons: { orderBy: { dayNumber: "asc" } }

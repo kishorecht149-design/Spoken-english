@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { courseSchema } from "@/lib/validators/course";
 import { parseBody, requireApiUser, validationErrorResponse } from "@/lib/services/api";
+import { isMongoObjectId } from "@/lib/utils";
 
 export async function GET(
   _request: NextRequest,
@@ -9,7 +10,7 @@ export async function GET(
 ) {
   const { courseId } = await params;
   const course = await prisma.course.findFirst({
-    where: { OR: [{ id: courseId }, { slug: courseId }] },
+    where: { OR: [{ slug: courseId }, ...(isMongoObjectId(courseId) ? [{ id: courseId }] : [])] },
     include: { lessons: { orderBy: { dayNumber: "asc" } } }
   });
 
