@@ -50,6 +50,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, role: user.role });
   } catch (error) {
-    return validationErrorResponse(error) ?? NextResponse.json({ error: "Registration failed" }, { status: 500 });
+    const validationError = validationErrorResponse(error);
+    if (validationError) return validationError;
+
+    return NextResponse.json(
+      {
+        error: "Registration failed",
+        detail: error instanceof Error ? error.message : "Unknown server error"
+      },
+      { status: 500 }
+    );
   }
 }
