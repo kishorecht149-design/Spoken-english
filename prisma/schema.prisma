@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LessonType {
+  GRAMMAR
+  VOCABULARY
+  SPEAKING
+  QUIZ
+  VIDEO
+}
+
+model User {
+  id                String          @id @default(cuid())
+  name              String
+  email             String          @unique
+  password          String
+  role              Role            @default(STUDENT)
+  avatarUrl         String?
+  bio               String?
+  referralCode      String          @unique
+  referredById      String?
+  referredBy        User?           @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals         User[]          @relation("UserReferrals")
+  streakCount       Int             @default(0)
+  totalPoints       Int             @default(0)
+  lastActiveAt      DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  progress          Progress[]
+  certificates      Certificate[]
+  conversations     Conversation[]
+  announcements     Announcement[]  @relation("AnnouncementAuthor")
+}
+
+model Course {
+  id                String          @id @default(cuid())
+  title             String
+  slug              String          @unique
+  description       String
+  level             CourseLevel
+  thumbnailUrl      String?
+  published         Boolean         @default(false)
+  estimatedMinutes  Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  lessons           Lesson[]
+}
+
+model Lesson {
+  id                String          @id @default(cuid())
+  courseId          String
+  course            Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title             String
+  slug              String
+  type              LessonType
+  dayNumber         Int
+  durationMinutes   Int             @default(10)
+  content           Json
+  mediaUrl          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  progress          Progress[]
+
+  @@unique([courseId, slug])
+}
+
+model Progress {
+  id                String          @id @default(cuid())
+  userId            String
+  lessonId          String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson            Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed         Boolean         @default(false)
+  score             Int             @default(0)
+  fluencyScore      Int             @default(0)
+  grammarScore      Int             @default(0)
+  pronunciationScore Int            @default(0)
+  feedback          String?
+  updatedAt         DateTime        @updatedAt
+  createdAt         DateTime        @default(now())
+
+  @@unique([userId, lessonId])
+}
+
+model Certificate {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  courseId          String?
+  issuedAt          DateTime        @default(now())
+  certificateUrl    String?
+}
+
+model Announcement {
+  id                String          @id @default(cuid())
+  title             String
+  body              String
+  published         Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  authorId          String
+  author            User            @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic             String
+  transcript        Json
+  feedback          String?
+  createdAt         DateTime        @default(now())
+}

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: spokenpro-realtime
+    runtime: node
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm run realtime:start
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: PORT
+        value: "10000"
