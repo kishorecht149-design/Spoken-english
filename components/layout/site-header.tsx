@@ -7,7 +7,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="font-display text-xl font-bold tracking-tight">
-          SpokenPro
+          Verbalyx
         </Link>
         <nav className="hidden gap-6 text-sm text-muted-foreground md:flex">
           <Link href="#features">Features</Link>

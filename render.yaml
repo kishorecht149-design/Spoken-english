@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: spokenpro-realtime
+    name: verbalyx-realtime
     runtime: node
     rootDir: .
     buildCommand: npm install

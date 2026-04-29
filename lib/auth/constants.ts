@@ -1,1 +1,1 @@
-export const AUTH_COOKIE = "spokenpro_token";
+export const AUTH_COOKIE = "verbalyx_token";

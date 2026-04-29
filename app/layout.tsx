@@ -4,10 +4,10 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 
 export const metadata: Metadata = {
-  title: "SpokenPro | Spoken English Learning Platform",
+  title: "Verbalyx | Spoken English Learning Platform",
   description:
-    "Production-ready spoken English learning platform with AI speaking practice, student dashboards, and admin analytics.",
-  keywords: ["spoken english", "english learning", "AI speaking coach", "admin panel"]
+    "Verbalyx is a production-ready spoken English learning platform with AI speaking practice, student dashboards, and admin analytics.",
+  keywords: ["Verbalyx", "spoken English", "English learning", "AI speaking coach", "admin panel"]
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

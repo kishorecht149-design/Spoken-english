@@ -24,7 +24,7 @@ export function StudentShell({
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="glass rounded-[32px] p-6">
           <Link href="/" className="font-display text-2xl font-bold">
-            SpokenPro
+            Verbalyx
           </Link>
           <nav className="mt-8 space-y-2">
             {links.map((link) => (

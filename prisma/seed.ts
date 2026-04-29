@@ -8,11 +8,11 @@ async function main() {
   const studentPassword = await bcrypt.hash("Student@12345", 10);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@spokenpro.dev" },
+    where: { email: "admin@verbalyx.dev" },
     update: {},
     create: {
       name: "Platform Admin",
-      email: "admin@spokenpro.dev",
+      email: "admin@verbalyx.dev",
       password: adminPassword,
       role: Role.ADMIN,
       referralCode: "ADMINPRO"
@@ -20,11 +20,11 @@ async function main() {
   });
 
   const student = await prisma.user.upsert({
-    where: { email: "student@spokenpro.dev" },
+    where: { email: "student@verbalyx.dev" },
     update: {},
     create: {
       name: "Ava Student",
-      email: "student@spokenpro.dev",
+      email: "student@verbalyx.dev",
       password: studentPassword,
       role: Role.STUDENT,
       referralCode: "AVASTART",
@@ -38,7 +38,7 @@ async function main() {
     where: { slug: "spoken-english-foundations" },
     update: {},
     create: {
-      title: "Spoken English Foundations",
+      title: "Verbalyx Foundations",
       slug: "spoken-english-foundations",
       description: "Build confidence with daily grammar, vocabulary, and speaking drills.",
       level: CourseLevel.BEGINNER,

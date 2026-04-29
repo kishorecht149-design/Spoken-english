@@ -1,4 +1,4 @@
-# SpokenPro
+# Verbalyx
 
 Production-ready spoken English learning platform built with Next.js App Router, Prisma, JWT auth, OpenAI integration, MongoDB, and an admin panel.
 
@@ -24,8 +24,8 @@ Production-ready spoken English learning platform built with Next.js App Router,
 
 ## Demo accounts
 
-- Admin: `admin@spokenpro.dev` / `Admin@12345`
-- Student: `student@spokenpro.dev` / `Student@12345`
+- Admin: `admin@verbalyx.dev` / `Admin@12345`
+- Student: `student@verbalyx.dev` / `Student@12345`
 
 ## Project structure
 

@@ -53,12 +53,7 @@ export async function POST(request: NextRequest) {
     const validationError = validationErrorResponse(error);
     if (validationError) return validationError;
 
-    return NextResponse.json(
-      {
-        error: "Registration failed",
-        detail: error instanceof Error ? error.message : "Unknown server error"
-      },
-      { status: 500 }
-    );
+    console.error("Registration failed", error);
+    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 }

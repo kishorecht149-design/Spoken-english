@@ -49,12 +49,7 @@ export async function POST(request: NextRequest) {
     const validationError = validationErrorResponse(error);
     if (validationError) return validationError;
 
-    return NextResponse.json(
-      {
-        error: "Login failed",
-        detail: error instanceof Error ? error.message : "Unknown server error"
-      },
-      { status: 500 }
-    );
+    console.error("Login failed", error);
+    return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }
