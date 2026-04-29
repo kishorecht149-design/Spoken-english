@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { progressSchema } from "@/lib/validators/progress";
-import { parseBody, requireApiUser } from "@/lib/services/api";
+import { parseBody, requireApiUser, validationErrorResponse } from "@/lib/services/api";
 
 export async function GET() {
   const auth = await requireApiUser();
@@ -15,43 +15,47 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireApiUser();
-  if ("error" in auth) return auth.error;
+  try {
+    const auth = await requireApiUser();
+    if ("error" in auth) return auth.error;
 
-  const payload = await parseBody(request, progressSchema);
-  const existing = await prisma.progress.findUnique({
-    where: {
-      userId_lessonId: {
-        userId: auth.session.id,
-        lessonId: payload.lessonId
+    const payload = await parseBody(request, progressSchema);
+    const existing = await prisma.progress.findUnique({
+      where: {
+        userId_lessonId: {
+          userId: auth.session.id,
+          lessonId: payload.lessonId
+        }
       }
-    }
-  });
+    });
 
-  const progress = await prisma.progress.upsert({
-    where: {
-      userId_lessonId: {
-        userId: auth.session.id,
-        lessonId: payload.lessonId
-      }
-    },
-    update: payload,
-    create: {
-      ...payload,
-      userId: auth.session.id
-    }
-  });
-
-  await prisma.user.update({
-    where: { id: auth.session.id },
-    data: {
-      lastActiveAt: new Date(),
-      totalPoints: {
-        increment: payload.completed && !existing?.completed ? Math.max(10, payload.score) : 0
+    const progress = await prisma.progress.upsert({
+      where: {
+        userId_lessonId: {
+          userId: auth.session.id,
+          lessonId: payload.lessonId
+        }
       },
-      streakCount: payload.completed && !existing?.completed ? { increment: 1 } : undefined
-    }
-  });
+      update: payload,
+      create: {
+        ...payload,
+        userId: auth.session.id
+      }
+    });
 
-  return NextResponse.json(progress);
+    await prisma.user.update({
+      where: { id: auth.session.id },
+      data: {
+        lastActiveAt: new Date(),
+        totalPoints: {
+          increment: payload.completed && !existing?.completed ? Math.max(10, payload.score) : 0
+        },
+        streakCount: payload.completed && !existing?.completed ? { increment: 1 } : undefined
+      }
+    });
+
+    return NextResponse.json(progress);
+  } catch (error) {
+    return validationErrorResponse(error) ?? NextResponse.json({ error: "Progress update failed" }, { status: 500 });
+  }
 }

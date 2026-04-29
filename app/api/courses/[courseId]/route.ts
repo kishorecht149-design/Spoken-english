@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { courseSchema } from "@/lib/validators/course";
-import { parseBody, requireApiUser } from "@/lib/services/api";
+import { parseBody, requireApiUser, validationErrorResponse } from "@/lib/services/api";
 
 export async function GET(
   _request: NextRequest,
@@ -24,20 +24,24 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
-  const auth = await requireApiUser();
-  if ("error" in auth) return auth.error;
-  if (auth.session.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  try {
+    const auth = await requireApiUser();
+    if ("error" in auth) return auth.error;
+    if (auth.session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const payload = await parseBody(request, courseSchema.partial());
+    const { courseId } = await params;
+    const course = await prisma.course.update({
+      where: { id: courseId },
+      data: payload
+    });
+
+    return NextResponse.json(course);
+  } catch (error) {
+    return validationErrorResponse(error) ?? NextResponse.json({ error: "Course update failed" }, { status: 500 });
   }
-
-  const payload = await parseBody(request, courseSchema.partial());
-  const { courseId } = await params;
-  const course = await prisma.course.update({
-    where: { id: courseId },
-    data: payload
-  });
-
-  return NextResponse.json(course);
 }
 
 export async function DELETE(

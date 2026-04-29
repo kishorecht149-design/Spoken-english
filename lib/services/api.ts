@@ -1,11 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ZodSchema } from "zod";
+import { ZodError, ZodSchema } from "zod";
 import { getSession } from "@/lib/auth/session";
 import { rateLimit } from "@/lib/services/rate-limit";
 
+export class RequestValidationError extends Error {
+  constructor(public issues: ZodError["issues"]) {
+    super("Invalid request body");
+    this.name = "RequestValidationError";
+  }
+}
+
 export async function parseBody<T>(request: NextRequest, schema: ZodSchema<T>) {
   const body = await request.json();
-  return schema.parse(body);
+  const result = schema.safeParse(body);
+
+  if (!result.success) {
+    throw new RequestValidationError(result.error.issues);
+  }
+
+  return result.data;
+}
+
+export function validationErrorResponse(error: unknown) {
+  if (error instanceof RequestValidationError) {
+    return NextResponse.json(
+      {
+        error: "Invalid request body",
+        issues: error.issues
+      },
+      { status: 400 }
+    );
+  }
+
+  return null;
 }
 
 export async function requireApiUser() {
