@@ -2,18 +2,32 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { prisma } from "@/lib/db/prisma";
 import { getAdminAnalytics } from "@/lib/services/dashboard";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { CoursePublisher } from "@/components/admin/course-publisher";
 import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   await requireAdmin();
+  const { tab } = await searchParams;
   const analytics = await getAdminAnalytics();
   const [users, courses, announcements] = await Promise.all([
     prisma.user.findMany({ take: 8, orderBy: { createdAt: "desc" } }),
     prisma.course.findMany({ include: { lessons: true }, orderBy: { createdAt: "desc" } }),
     prisma.announcement.findMany({ take: 5, orderBy: { createdAt: "desc" } })
   ]);
+
+  if (tab === "courses") {
+    return (
+      <AdminShell>
+        <CoursePublisher initialCourses={courses} />
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell>
