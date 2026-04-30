@@ -19,6 +19,13 @@
    - `OPENAI_MODEL`
    - `NEXT_PUBLIC_APP_URL`
    - `NEXT_PUBLIC_SOCKET_URL`
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `FIREBASE_PROJECT_ID`
+   - `FIREBASE_CLIENT_EMAIL`
+   - `FIREBASE_PRIVATE_KEY`
    - `RESEND_API_KEY`
    - `EMAIL_FROM`
    - `STRIPE_SECRET_KEY`
@@ -45,6 +52,14 @@ The included `render.yaml` can also be used for Render Blueprint deploys.
 - MongoDB Atlas works well for this setup.
 - Set the same `DATABASE_URL` in Vercel and your local `.env`.
 - For schema sync, use `npx prisma db push`.
+
+## Firebase Auth
+
+- Create a Firebase project and enable Authentication with Google as a sign-in provider.
+- Add your Vercel production domain to Firebase Authentication authorized domains.
+- Copy the web app config values into the `NEXT_PUBLIC_FIREBASE_*` variables.
+- Create a Firebase service account key and add `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` to Vercel.
+- Keep admin users on `/admin/login`; Firebase Google sign-in is for learner accounts only.
 
 ## OpenAI
 

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Chrome, LockKeyhole, Mail } from "lucide-react";
+import { LockKeyhole, Mail } from "lucide-react";
+import { FirebaseGoogleButton } from "@/components/auth/firebase-google-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,12 +40,7 @@ export default function LoginPage() {
           <h1 className="mt-2 font-display text-3xl font-bold">Welcome back</h1>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to continue your spoken English journey.</p>
         </div>
-        <a href="/api/auth/google/start">
-          <Button variant="secondary" className="w-full gap-2">
-            <Chrome className="h-4 w-4" />
-            Continue with Google
-          </Button>
-        </a>
+        <FirebaseGoogleButton label="Continue with Google" />
         <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
           or email

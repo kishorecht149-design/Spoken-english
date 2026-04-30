@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Chrome } from "lucide-react";
+import { FirebaseGoogleButton } from "@/components/auth/firebase-google-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,12 +38,7 @@ export default function SignupPage() {
           <h1 className="font-display text-3xl font-bold">Start speaking with confidence</h1>
           <p className="mt-2 text-sm text-muted-foreground">Create your learner account in under a minute.</p>
         </div>
-        <a href="/api/auth/google/start">
-          <Button variant="secondary" className="w-full gap-2">
-            <Chrome className="h-4 w-4" />
-            Sign up with Google
-          </Button>
-        </a>
+        <FirebaseGoogleButton label="Sign up with Google" />
         <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
           or email
