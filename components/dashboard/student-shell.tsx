@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Bell, BookOpen, Home, Mic, Trophy } from "lucide-react";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
@@ -38,6 +39,12 @@ export function StudentShell({
               </Link>
             ))}
           </nav>
+          <div className="mt-8 border-t border-border pt-4">
+            <SignOutButton className="w-full justify-start rounded-2xl px-4 py-3 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground" />
+            <p className="mt-3 px-4 text-xs leading-5 text-muted-foreground">
+              Sign out first if you want to continue with another Google account.
+            </p>
+          </div>
         </aside>
         <main className="space-y-6">
           <header className="glass flex items-center justify-between rounded-[32px] p-6">

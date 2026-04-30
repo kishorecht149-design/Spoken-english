@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { BarChart3, BookCopy, Megaphone, ShieldCheck, Users } from "lucide-react";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 const links = [
   { href: "/admin", label: "Overview", icon: BarChart3 },
@@ -33,6 +34,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <div className="mt-8 border-t border-border pt-4">
+            <SignOutButton
+              redirectTo="/admin/login"
+              className="w-full justify-start rounded-2xl px-4 py-3 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground"
+            />
+          </div>
         </aside>
         <main className="space-y-6">{children}</main>
       </div>
