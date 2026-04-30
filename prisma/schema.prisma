@@ -26,6 +26,13 @@ enum LessonType {
   VIDEO
 }
 
+enum AiFallbackLayer {
+  PRIMARY
+  SECONDARY
+  RULE_BASED
+  STATIC
+}
+
 model User {
   id                String          @id @default(auto()) @map("_id") @db.ObjectId
   name              String
@@ -126,5 +133,18 @@ model Conversation {
   topic             String
   transcript        Json
   feedback          String?
+  createdAt         DateTime        @default(now())
+}
+
+model AiFallbackLog {
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String?         @db.ObjectId
+  route             String
+  layer             AiFallbackLayer
+  reason            String
+  qualityScore      Int
+  primaryFailed     Boolean         @default(false)
+  secondaryFailed   Boolean         @default(false)
+  metadata          Json?
   createdAt         DateTime        @default(now())
 }

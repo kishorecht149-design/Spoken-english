@@ -76,6 +76,35 @@ function getLessonObjective(content: unknown) {
   return typeof objective === "string" ? objective : null;
 }
 
+function getLessonContent(content: unknown) {
+  if (!content || typeof content !== "object" || Array.isArray(content)) return null;
+  const data = content as {
+    explanation?: unknown;
+    speakingPrompts?: unknown;
+    realLifeScenario?: unknown;
+    dailyChallenge?: unknown;
+    pronunciationDrill?: unknown;
+    commonMistake?: unknown;
+    aiScenario?: unknown;
+  };
+
+  return {
+    explanation: typeof data.explanation === "string" ? data.explanation : null,
+    speakingPrompts: Array.isArray(data.speakingPrompts) ? data.speakingPrompts.filter((item): item is string => typeof item === "string") : [],
+    realLifeScenario: typeof data.realLifeScenario === "string" ? data.realLifeScenario : null,
+    dailyChallenge: typeof data.dailyChallenge === "string" ? data.dailyChallenge : null,
+    pronunciationDrill: typeof data.pronunciationDrill === "string" ? data.pronunciationDrill : null,
+    commonMistake:
+      data.commonMistake && typeof data.commonMistake === "object" && !Array.isArray(data.commonMistake)
+        ? (data.commonMistake as { wrong?: string; correct?: string; why?: string })
+        : null,
+    aiOpening:
+      data.aiScenario && typeof data.aiScenario === "object" && !Array.isArray(data.aiScenario)
+        ? (data.aiScenario as { openingLine?: string }).openingLine
+        : null
+  };
+}
+
 export default async function CourseDetailsPage({
   params
 }: {
@@ -190,6 +219,7 @@ export default async function CourseDetailsPage({
             const isComplete = Boolean(lessonProgress?.completed);
             const videoSource = getVideoSource(lesson.mediaUrl);
             const objective = getLessonObjective(lesson.content);
+            const lessonContent = getLessonContent(lesson.content);
 
             return (
               <div
@@ -213,6 +243,58 @@ export default async function CourseDetailsPage({
                   <p className="mt-2 text-sm text-muted-foreground">
                     {objective || `Day ${lesson.dayNumber}: learn, speak, receive feedback, and retry once.`}
                   </p>
+                  {lessonContent ? (
+                    <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                      {lessonContent.explanation ? (
+                        <div className="rounded-2xl bg-muted/60 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Simple Explanation</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">{lessonContent.explanation}</p>
+                        </div>
+                      ) : null}
+                      {lessonContent.realLifeScenario ? (
+                        <div className="rounded-2xl bg-muted/60 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Real-Life Scenario</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">{lessonContent.realLifeScenario}</p>
+                        </div>
+                      ) : null}
+                      {lessonContent.speakingPrompts.length ? (
+                        <div className="rounded-2xl bg-muted/60 p-4 lg:col-span-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">5 Speaking Prompts</p>
+                          <div className="mt-3 grid gap-2 md:grid-cols-2">
+                            {lessonContent.speakingPrompts.map((prompt) => (
+                              <p key={prompt} className="rounded-xl bg-background/70 p-3 text-sm leading-6 text-muted-foreground">
+                                {prompt}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                      {lessonContent.dailyChallenge ? (
+                        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Daily Challenge</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">{lessonContent.dailyChallenge}</p>
+                        </div>
+                      ) : null}
+                      {lessonContent.pronunciationDrill ? (
+                        <div className="rounded-2xl border border-amber-300/40 bg-amber-50 p-4 dark:bg-amber-950/20">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">Pronunciation Drill</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">{lessonContent.pronunciationDrill}</p>
+                        </div>
+                      ) : null}
+                      {lessonContent.commonMistake?.wrong && lessonContent.commonMistake.correct ? (
+                        <div className="rounded-2xl bg-rose-50 p-4 dark:bg-rose-950/20 lg:col-span-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-600">Common Mistake Fix</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            <span className="font-semibold text-rose-600">Wrong:</span> {lessonContent.commonMistake.wrong}
+                          </p>
+                          <p className="text-sm leading-6 text-muted-foreground">
+                            <span className="font-semibold text-accent">Correct:</span> {lessonContent.commonMistake.correct}
+                          </p>
+                          {lessonContent.commonMistake.why ? <p className="text-sm leading-6 text-muted-foreground">{lessonContent.commonMistake.why}</p> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {videoSource ? (
                     <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-slate-950 shadow-sm">
                       {videoSource.kind === "iframe" ? (

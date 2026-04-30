@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { evaluateSpeaking } from "@/lib/services/openai";
+import { getTutorSpeakingFeedback, type TutorContext } from "@/lib/services/ai-fallback";
 import { applyRateLimit, requireApiUser } from "@/lib/services/api";
 
 export async function POST(request: NextRequest) {
@@ -9,15 +9,22 @@ export async function POST(request: NextRequest) {
   const auth = await requireApiUser();
   if ("error" in auth) return auth.error;
 
-  const body = (await request.json()) as { transcript: string; targetPrompt: string };
+  const body = (await request.json()) as {
+    transcript: string;
+    targetPrompt: string;
+    context?: TutorContext;
+  };
 
-  if (body.transcript.trim().split(/\s+/).length < 10) {
-    return NextResponse.json(
-      { error: "Speech sample is too short for reliable scoring." },
-      { status: 400 }
-    );
-  }
+  const transcript = body.transcript.trim() || "I need help speaking this answer.";
+  const result = await getTutorSpeakingFeedback({
+    transcript,
+    targetPrompt: body.targetPrompt,
+    context: {
+      ...body.context,
+      userId: auth.session.id,
+      userLevel: body.context?.userLevel || "BEGINNER"
+    }
+  });
 
-  const result = await evaluateSpeaking(body);
   return NextResponse.json(result);
 }
