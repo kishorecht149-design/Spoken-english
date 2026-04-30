@@ -11,6 +11,10 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/admin/login") {
+    return NextResponse.next();
+  }
+
   const protectedRoutes = ["/dashboard", "/courses", "/practice", "/leaderboard", "/challenges", "/admin"];
   const shouldProtect = protectedRoutes.some((route) => pathname.startsWith(route));
 
@@ -19,7 +23,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL(pathname.startsWith("/admin") ? "/admin/login" : "/login", request.url));
   }
 
   try {
@@ -32,7 +36,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL(pathname.startsWith("/admin") ? "/admin/login" : "/login", request.url));
   }
 }
 

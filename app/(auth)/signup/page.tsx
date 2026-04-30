@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Chrome } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,12 +38,29 @@ export default function SignupPage() {
           <h1 className="font-display text-3xl font-bold">Start speaking with confidence</h1>
           <p className="mt-2 text-sm text-muted-foreground">Create your learner account in under a minute.</p>
         </div>
+        <a href="/api/auth/google/start">
+          <Button variant="secondary" className="w-full gap-2">
+            <Chrome className="h-4 w-4" />
+            Sign up with Google
+          </Button>
+        </a>
+        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or email
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <Input placeholder="Full name" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
         <Input placeholder="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
         <Input placeholder="Password" type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
         <Input placeholder="Referral code (optional)" value={form.referralCode} onChange={(event) => setForm((current) => ({ ...current, referralCode: event.target.value }))} />
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <Button className="w-full" onClick={submit}>Create Account</Button>
+        <p className="text-center text-sm text-muted-foreground">
+          Already joined?{" "}
+          <Link href="/login" className="font-semibold text-primary">
+            Login
+          </Link>
+        </p>
       </Card>
     </div>
   );

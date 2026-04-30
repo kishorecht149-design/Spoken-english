@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { hashPassword } from "@/lib/auth/password";
-import { signToken } from "@/lib/auth/session";
-import { AUTH_COOKIE } from "@/lib/auth/constants";
+import { setAuthCookie, signToken } from "@/lib/auth/session";
 import { parseBody, applyRateLimit, validationErrorResponse } from "@/lib/services/api";
 import { registerSchema } from "@/lib/validators/auth";
 
@@ -39,14 +37,7 @@ export async function POST(request: NextRequest) {
       name: user.name
     });
 
-    const cookieStore = await cookies();
-    cookieStore.set(AUTH_COOKIE, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7
-    });
+    await setAuthCookie(token);
 
     return NextResponse.json({ ok: true, role: user.role });
   } catch (error) {
