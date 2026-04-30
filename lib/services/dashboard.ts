@@ -1,6 +1,8 @@
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
+const curriculumOrder = ["foundation-builder", "confidence-builder", "fluency-professional-communication"];
+
 export async function getStudentDashboard(userId: string) {
   const [courses, progress, announcements] = await Promise.all([
     prisma.course.findMany({
@@ -19,7 +21,18 @@ export async function getStudentDashboard(userId: string) {
     })
   ]);
 
-  return { courses, progress, announcements };
+  const sortedCourses = [...courses].sort((a, b) => {
+    const aIndex = curriculumOrder.indexOf(a.slug);
+    const bIndex = curriculumOrder.indexOf(b.slug);
+
+    if (aIndex !== -1 || bIndex !== -1) {
+      return (aIndex === -1 ? 99 : aIndex) - (bIndex === -1 ? 99 : bIndex);
+    }
+
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
+
+  return { courses: sortedCourses, progress, announcements };
 }
 
 export async function getAdminAnalytics() {

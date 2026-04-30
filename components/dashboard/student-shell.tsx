@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/courses/spoken-english-foundations", label: "Courses", icon: BookOpen },
+  { href: "/courses", label: "Courses", icon: BookOpen },
   { href: "/practice/speaking", label: "Speaking", icon: Mic },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy }
 ];

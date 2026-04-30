@@ -12,10 +12,21 @@ interface Message {
   text: string;
 }
 
-export function ConversationPanel() {
-  const [topic] = useState("Job interview warm-up");
+interface ConversationPanelProps {
+  initialTopic?: string;
+  initialPrompt?: string;
+  initialLevel?: string;
+}
+
+export function ConversationPanel({ initialTopic, initialPrompt, initialLevel }: ConversationPanelProps) {
+  const [topic] = useState(initialTopic || "Job interview warm-up");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "coach", text: "Hello. Tell me about a recent challenge you solved at work or school." }
+    {
+      role: "coach",
+      text:
+        initialPrompt ||
+        "Hello. Tell me about a recent challenge you solved at work or school."
+    }
   ]);
   const [input, setInput] = useState("");
 
@@ -42,7 +53,15 @@ export function ConversationPanel() {
     const response = await fetch("/api/ai/conversation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic, message: input })
+      body: JSON.stringify({
+        topic,
+        message: input,
+        context: {
+          userLevel: initialLevel,
+          lessonTitle: initialTopic,
+          lessonPrompt: initialPrompt
+        }
+      })
     });
     const data = await response.json();
     setMessages((current) => [...current, { role: "coach", text: data.reply }]);

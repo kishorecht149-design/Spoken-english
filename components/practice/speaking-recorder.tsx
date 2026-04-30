@@ -61,8 +61,27 @@ const scenarios = [
   }
 ];
 
-export function SpeakingRecorder() {
-  const [selectedId, setSelectedId] = useState(scenarios[0].id);
+export function SpeakingRecorder({
+  initialPrompt,
+  initialTitle,
+  initialLevel
+}: {
+  initialPrompt?: string;
+  initialTitle?: string;
+  initialLevel?: string;
+}) {
+  const customScenario = initialPrompt
+    ? {
+        id: "lesson",
+        title: initialTitle || "Lesson speaking task",
+        level: initialLevel || "Lesson",
+        seconds: 60,
+        prompt: initialPrompt,
+        checklist: ["Answer in complete sentences", "Add one reason", "Add one real-life example"]
+      }
+    : null;
+  const availableScenarios = customScenario ? [customScenario, ...scenarios] : scenarios;
+  const [selectedId, setSelectedId] = useState(availableScenarios[0].id);
   const [transcript, setTranscript] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<string, number> | null>(null);
@@ -70,7 +89,7 @@ export function SpeakingRecorder() {
   const [error, setError] = useState("");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const scenario = scenarios.find((item) => item.id === selectedId) || scenarios[0];
+  const scenario = availableScenarios.find((item) => item.id === selectedId) || availableScenarios[0];
 
   const startRecording = () => {
     setError("");
@@ -167,7 +186,7 @@ export function SpeakingRecorder() {
         </div>
 
         <div className="mt-6 grid gap-3">
-          {scenarios.map((item) => (
+          {availableScenarios.map((item) => (
             <button
               key={item.id}
               onClick={() => {

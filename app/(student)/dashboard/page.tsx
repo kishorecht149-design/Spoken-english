@@ -150,7 +150,9 @@ export default async function DashboardPage() {
             {roleplays.map((roleplay) => (
               <Link
                 key={roleplay}
-                href="/practice/conversation"
+                href={`/practice/conversation?topic=${encodeURIComponent(roleplay)}&prompt=${encodeURIComponent(
+                  `Let's practice this scenario: ${roleplay}. Reply in English with 2-3 clear sentences.`
+                )}`}
                 className="flex items-center justify-between rounded-2xl border border-border bg-background/60 p-4 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/5"
               >
                 {roleplay}
@@ -172,7 +174,11 @@ export default async function DashboardPage() {
               const value = percentage(complete, course.lessons.length);
 
               return (
-                <div key={course.id} className="rounded-2xl border border-border p-4">
+                <Link
+                  key={course.id}
+                  href={`/courses/${course.slug}`}
+                  className="block rounded-2xl border border-border p-4 transition hover:border-primary/40 hover:bg-primary/5"
+                >
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="font-semibold">{course.title}</p>
@@ -183,7 +189,7 @@ export default async function DashboardPage() {
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
                     <div className="h-full rounded-full bg-primary" style={{ width: `${value}%` }} />
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

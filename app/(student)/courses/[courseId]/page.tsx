@@ -8,6 +8,7 @@ import {
   Clock,
   ExternalLink,
   GraduationCap,
+  MessageCircle,
   Mic2,
   PlayCircle,
   Sparkles,
@@ -105,6 +106,17 @@ function getLessonContent(content: unknown) {
   };
 }
 
+function buildPracticeHref(path: "/practice/speaking" | "/practice/conversation", values: Record<string, string | null | undefined>) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(values)) {
+    if (value) params.set(key, value);
+  }
+
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 export default async function CourseDetailsPage({
   params
 }: {
@@ -136,6 +148,18 @@ export default async function CourseDetailsPage({
   ).length;
   const courseProgress = percentage(completed, course.lessons.length);
   const nextLesson = course.lessons.find((lesson) => !progress.some((item) => item.lessonId === lesson.id && item.completed)) || course.lessons[0];
+  const nextLessonContent = getLessonContent(nextLesson?.content);
+  const nextLessonObjective = getLessonObjective(nextLesson?.content);
+  const nextSpeakingHref = buildPracticeHref("/practice/speaking", {
+    title: nextLesson?.title,
+    level: course.level,
+    prompt: nextLessonContent?.speakingPrompts[0] || nextLessonObjective || `Speak for one minute about: ${nextLesson?.title}`
+  });
+  const nextConversationHref = buildPracticeHref("/practice/conversation", {
+    topic: nextLesson?.title,
+    level: course.level,
+    prompt: nextLessonContent?.aiOpening || nextLessonContent?.realLifeScenario || nextLessonObjective
+  });
 
   return (
     <StudentShell title={course.title} subtitle={course.description}>
@@ -151,13 +175,13 @@ export default async function CourseDetailsPage({
               Follow the daily sequence, practice the speaking task, then repeat the weakest sentence until your confidence score improves.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/practice/speaking">
+              <Link href={nextSpeakingHref}>
                 <Button className="gap-2 bg-white text-slate-950 hover:bg-slate-100">
                   <Mic2 className="h-4 w-4" />
                   Practice this lesson
                 </Button>
               </Link>
-              <Link href="/practice/conversation">
+              <Link href={nextConversationHref}>
                 <Button variant="secondary" className="gap-2">
                   <Sparkles className="h-4 w-4" />
                   Role-play topic
@@ -220,6 +244,16 @@ export default async function CourseDetailsPage({
             const videoSource = getVideoSource(lesson.mediaUrl);
             const objective = getLessonObjective(lesson.content);
             const lessonContent = getLessonContent(lesson.content);
+            const speakingHref = buildPracticeHref("/practice/speaking", {
+              title: lesson.title,
+              level: course.level,
+              prompt: lessonContent?.speakingPrompts[0] || objective || `Speak for one minute about: ${lesson.title}`
+            });
+            const conversationHref = buildPracticeHref("/practice/conversation", {
+              topic: lesson.title,
+              level: course.level,
+              prompt: lessonContent?.aiOpening || lessonContent?.realLifeScenario || objective
+            });
 
             return (
               <div
@@ -332,6 +366,20 @@ export default async function CourseDetailsPage({
                       ) : null}
                     </div>
                   ) : null}
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link href={speakingHref}>
+                      <Button className="gap-2 px-4 py-2 text-sm">
+                        <Mic2 className="h-4 w-4" />
+                        Practice speaking
+                      </Button>
+                    </Link>
+                    <Link href={conversationHref}>
+                      <Button variant="secondary" className="gap-2 px-4 py-2 text-sm">
+                        <MessageCircle className="h-4 w-4" />
+                        AI role-play
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
