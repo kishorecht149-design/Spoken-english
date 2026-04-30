@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BarChart3, BookCopy, Megaphone, ShieldCheck, Users } from "lucide-react";
+import { BarChart3, BookCopy, ExternalLink, Megaphone, ShieldCheck, Users } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
 const links = [
   { href: "/admin", label: "Overview", icon: BarChart3 },
-  { href: "/admin?tab=users", label: "Users", icon: Users },
-  { href: "/admin?tab=courses", label: "Courses", icon: BookCopy },
+  { href: "/admin?tab=courses", label: "Course Builder", icon: BookCopy },
+  { href: "/admin?tab=users", label: "Learners", icon: Users },
   { href: "/admin?tab=announcements", label: "Announcements", icon: Megaphone }
 ];
 
@@ -35,6 +35,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="mt-8 border-t border-border pt-4">
+            <Link
+              href="/courses"
+              className="mb-2 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-muted-foreground transition hover:bg-primary/10 hover:text-foreground"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View learner app
+            </Link>
             <SignOutButton
               redirectTo="/admin/login"
               className="w-full justify-start rounded-2xl px-4 py-3 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground"
