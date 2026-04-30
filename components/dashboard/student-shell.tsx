@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Bell, BookOpen, Home, Mic, Trophy } from "lucide-react";
+import { Bell, Footprints, Home, Mic, Trophy } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/courses", label: "Courses", icon: BookOpen },
+  { href: "/courses", label: "Learning Path", icon: Footprints },
   { href: "/practice/speaking", label: "Speaking", icon: Mic },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy }
 ];

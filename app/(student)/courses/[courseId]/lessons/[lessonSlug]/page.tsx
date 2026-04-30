@@ -186,6 +186,35 @@ export default async function LessonPlayerPage({
   });
   const courseHref = `/courses/${course.slug}`;
   const nextHref = nextLesson ? `/courses/${course.slug}/lessons/${nextLesson.slug}` : undefined;
+  const microRound = [
+    {
+      title: "Listen with your eyes",
+      action: "Read the pattern once. Do not memorize grammar terms.",
+      reward: "+2 XP"
+    },
+    {
+      title: "Build one sentence",
+      action: lessonContent?.speakingPrompts[1] || "Make one short sentence using today's pattern.",
+      reward: "+4 XP"
+    },
+    {
+      title: "Speak out loud",
+      action: speakingPrompt,
+      reward: "+8 XP"
+    },
+    {
+      title: "Repair one mistake",
+      action: lessonContent?.commonMistake?.wrong
+        ? `Change "${lessonContent.commonMistake.wrong}" into "${lessonContent.commonMistake.correct}".`
+        : "Say your sentence again, but slower and clearer.",
+      reward: "+4 XP"
+    },
+    {
+      title: "Real conversation",
+      action: conversationPrompt,
+      reward: "+12 XP"
+    }
+  ];
 
   return (
     <StudentShell title={lesson.title} subtitle={`${course.title} • Day ${lesson.dayNumber}`}>
@@ -243,6 +272,40 @@ export default async function LessonPlayerPage({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.75fr]">
         <div className="space-y-6">
+          <Card className="rounded-2xl border-lime-200 bg-lime-50 dark:bg-lime-950/20">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-lime-700 dark:text-lime-300">Verbalyx round</p>
+                <h2 className="mt-2 font-display text-3xl font-bold">Finish 5 tiny steps</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  This is the Duolingo-style loop adapted for speaking: short action, instant practice, one correction, repeat tomorrow.
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 text-center shadow-sm dark:bg-black/20">
+                <p className="font-display text-3xl font-bold text-lime-600">+30</p>
+                <p className="text-xs text-muted-foreground">XP available</p>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3">
+              {microRound.map((step, index) => (
+                <div key={step.title} className="flex gap-4 rounded-2xl border border-lime-200 bg-white/80 p-4 dark:border-lime-900 dark:bg-black/20">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime-500 font-bold text-white shadow-[0_5px_0_#65a30d]">
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold">{step.title}</p>
+                      <span className="rounded-full bg-lime-100 px-3 py-1 text-xs font-semibold text-lime-700 dark:bg-lime-950 dark:text-lime-200">
+                        {step.reward}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.action}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           {videoSource ? (
             <Card className="overflow-hidden rounded-2xl p-0">
               {videoSource.kind === "iframe" ? (

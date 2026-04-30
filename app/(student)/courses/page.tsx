@@ -1,14 +1,48 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, Clock, GraduationCap, Layers3, Mic2, Sparkles } from "lucide-react";
+import {
+  BookOpenCheck,
+  CheckCircle2,
+  Flame,
+  Gem,
+  Heart,
+  LockKeyhole,
+  Mic2,
+  MessageCircle,
+  PlayCircle,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Trophy,
+  Zap
+} from "lucide-react";
 import { StudentShell } from "@/components/dashboard/student-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/guards";
 import { prisma } from "@/lib/db/prisma";
+import { percentage } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 const curriculumOrder = ["foundation-builder", "confidence-builder", "fluency-professional-communication"];
+
+const unitSkins = [
+  {
+    gradient: "from-[#57c785] via-[#1f9f68] to-[#096b4b]",
+    badge: "Unit 1",
+    mission: "Build your speaking base"
+  },
+  {
+    gradient: "from-[#4aa8ff] via-[#1d75d8] to-[#123f8c]",
+    badge: "Unit 2",
+    mission: "Answer confidently in real situations"
+  },
+  {
+    gradient: "from-[#ffb84d] via-[#f06b2f] to-[#9f2f16]",
+    badge: "Unit 3",
+    mission: "Speak professionally with polish"
+  }
+];
 
 function sortCourses<T extends { slug: string; createdAt: Date }>(courses: T[]) {
   return [...courses].sort((a, b) => {
@@ -21,121 +55,192 @@ function sortCourses<T extends { slug: string; createdAt: Date }>(courses: T[]) 
   });
 }
 
-export default async function CoursesPage() {
-  await requireUser();
+function nodeIcon(type: string, completed: boolean, locked: boolean) {
+  if (locked) return LockKeyhole;
+  if (completed) return CheckCircle2;
+  if (type === "VIDEO") return PlayCircle;
+  if (type === "SPEAKING") return Mic2;
+  if (type === "QUIZ") return ShieldCheck;
+  return Star;
+}
 
-  const courses = sortCourses(
-    await prisma.course.findMany({
-      where: { published: true },
+export default async function CoursesPage() {
+  const session = await requireUser();
+
+  const [courses, user, progress] = await Promise.all([
+    prisma.course.findMany({
+      where: { published: true, slug: { in: curriculumOrder } },
       include: { lessons: { orderBy: { dayNumber: "asc" } } },
       orderBy: { createdAt: "desc" }
-    })
-  );
+    }),
+    prisma.user.findUnique({ where: { id: session.id } }),
+    prisma.progress.findMany({ where: { userId: session.id } })
+  ]);
 
-  const totalLessons = courses.reduce((total, course) => total + course.lessons.length, 0);
+  const sortedCourses = sortCourses(courses);
+  const totalLessons = sortedCourses.reduce((total, course) => total + course.lessons.length, 0);
+  const completedLessons = progress.filter((item) => item.completed).length;
+  const overallProgress = percentage(completedLessons, totalLessons);
+  let previousCoreComplete = true;
 
   return (
     <StudentShell
-      title="Your Spoken English Courses"
-      subtitle="Choose the right path and complete one speaking-focused lesson every day."
+      title="Verbalyx Path"
+      subtitle="A bite-sized speaking journey with XP, streaks, review, and AI role-play."
     >
-      <section className="overflow-hidden rounded-[2rem] border border-border bg-[radial-gradient(circle_at_top_left,rgba(245,194,66,0.22),transparent_34%),linear-gradient(135deg,#07111f,#122132)] p-6 text-white shadow-premium lg:p-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+      <section className="overflow-hidden rounded-[2rem] border border-border bg-[#10251d] text-white shadow-premium">
+        <div className="grid gap-6 bg-[radial-gradient(circle_at_top_left,rgba(255,220,92,0.28),transparent_36%),linear-gradient(135deg,#10251d,#0b1f30)] p-6 lg:grid-cols-[1fr_auto] lg:items-center lg:p-8">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-lime-200">
               <Sparkles className="h-4 w-4" />
-              90-day transformation system
+              Daily speaking path
             </div>
-            <h2 className="mt-5 font-display text-4xl font-bold">Start with Foundation, then unlock confidence and professional fluency.</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-              Every course includes daily speaking prompts, AI scenarios, common mistake fixes, pronunciation drills, and confidence tasks.
+            <h2 className="mt-5 font-display text-4xl font-bold">One small lesson. One speaking win. Every day.</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-200">
+              Lessons are short rounds: notice the pattern, build a sentence, speak it aloud, repair a mistake, then role-play with AI.
             </p>
           </div>
-          <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-5 text-center sm:grid-cols-3 lg:min-w-[360px]">
-            <div>
-              <p className="font-display text-3xl font-bold">{courses.length}</p>
-              <p className="text-xs text-slate-300">Courses</p>
-            </div>
-            <div>
-              <p className="font-display text-3xl font-bold">{totalLessons}</p>
-              <p className="text-xs text-slate-300">Lessons</p>
-            </div>
-            <div>
-              <p className="font-display text-3xl font-bold">80%</p>
-              <p className="text-xs text-slate-300">Speaking</p>
-            </div>
+          <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/10 p-5 sm:grid-cols-4 lg:min-w-[520px]">
+            {[
+              { icon: Flame, label: "Streak", value: `${user?.streakCount || 0}d`, color: "text-orange-200" },
+              { icon: Zap, label: "XP", value: user?.totalPoints || 0, color: "text-yellow-200" },
+              { icon: Heart, label: "Hearts", value: 5, color: "text-rose-200" },
+              { icon: Gem, label: "Gems", value: 120, color: "text-cyan-200" }
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-2xl bg-white/10 p-3 text-center">
+                <stat.icon className={`mx-auto h-5 w-5 ${stat.color}`} />
+                <p className="mt-2 font-display text-2xl font-bold">{stat.value}</p>
+                <p className="text-xs text-slate-300">{stat.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        {courses.map((course) => {
-          const firstLesson = course.lessons[0];
-          const isCoreCurriculum = curriculumOrder.includes(course.slug);
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-8">
+          {sortedCourses.map((course, courseIndex) => {
+            const skin = unitSkins[courseIndex] || unitSkins[0];
+            const courseCompleted = course.lessons.every((lesson) =>
+              progress.some((item) => item.lessonId === lesson.id && item.completed)
+            );
+            const courseLocked = !previousCoreComplete;
+            previousCoreComplete = previousCoreComplete && courseCompleted;
 
-          return (
-            <Card key={course.id} className="group flex rounded-2xl flex-col">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">{course.level}</p>
-                  <h2 className="mt-2 font-display text-2xl font-bold">{course.title}</h2>
+            return (
+              <section key={course.id} className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-premium">
+                <div className={`bg-gradient-to-br ${skin.gradient} p-6 text-white`}>
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">{skin.badge}</p>
+                      <h2 className="mt-2 font-display text-3xl font-bold">{course.title.replace(/^(Beginner|Intermediate|Advanced): /, "")}</h2>
+                      <p className="mt-2 text-sm text-white/80">{skin.mission}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/15 px-4 py-3 text-sm font-semibold">
+                      {percentage(
+                        course.lessons.filter((lesson) => progress.some((item) => item.lessonId === lesson.id && item.completed)).length,
+                        course.lessons.length
+                      )}
+                      % complete
+                    </div>
+                  </div>
                 </div>
-                {isCoreCurriculum ? (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Core</span>
-                ) : null}
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{course.description}</p>
 
-              <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
-                  <BookOpenCheck className="h-3 w-3" />
-                  {course.lessons.length} lessons
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
-                  <Clock className="h-3 w-3" />
-                  {course.estimatedMinutes} mins
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
-                  <Mic2 className="h-3 w-3" />
-                  Speaking tasks
-                </span>
-              </div>
+                <div className="relative mx-auto max-w-3xl px-6 py-8">
+                  <div className="absolute left-1/2 top-8 h-[calc(100%-4rem)] w-2 -translate-x-1/2 rounded-full bg-muted" />
+                  <div className="relative space-y-6">
+                    {course.lessons.map((lesson, index) => {
+                      const completed = progress.some((item) => item.lessonId === lesson.id && item.completed);
+                      const previousLesson = index === 0 ? null : course.lessons[index - 1];
+                      const previousLessonComplete = previousLesson
+                        ? progress.some((item) => item.lessonId === previousLesson.id && item.completed)
+                        : true;
+                      const locked = courseLocked || (!completed && !previousLessonComplete);
+                      const Icon = nodeIcon(lesson.type, completed, locked);
+                      const align = index % 2 === 0 ? "mr-auto pr-16" : "ml-auto pl-16";
 
-              <div className="mt-5 rounded-2xl border border-border bg-background/60 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <GraduationCap className="h-4 w-4 text-primary" />
-                  First lesson
+                      return (
+                        <div key={lesson.id} className={`relative flex w-full max-w-[320px] ${align}`}>
+                          <Link
+                            href={locked ? "#" : `/courses/${course.slug}/lessons/${lesson.slug}`}
+                            aria-disabled={locked}
+                            className={`group flex w-full items-center gap-4 rounded-[2rem] border p-4 transition ${
+                              locked
+                                ? "cursor-not-allowed border-border bg-muted/60 opacity-60"
+                                : completed
+                                  ? "border-emerald-300 bg-emerald-50 shadow-[0_8px_0_#86efac] dark:bg-emerald-950/20"
+                                  : "border-lime-300 bg-lime-50 shadow-[0_8px_0_#bef264] hover:-translate-y-1 dark:bg-lime-950/20"
+                            }`}
+                          >
+                            <div
+                              className={`grid h-14 w-14 shrink-0 place-items-center rounded-full border-4 text-white ${
+                                locked ? "border-slate-300 bg-slate-400" : completed ? "border-emerald-200 bg-emerald-500" : "border-lime-200 bg-lime-500"
+                              }`}
+                            >
+                              <Icon className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Day {lesson.dayNumber}</p>
+                              <p className="mt-1 font-semibold leading-5">{lesson.title.replace(/^Day \d+: /, "")}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">{locked ? "Complete previous lesson" : `${lesson.durationMinutes} min • +20 XP`}</p>
+                            </div>
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{firstLesson?.title || "Lessons coming soon"}</p>
-              </div>
-
-              <div className="mt-auto pt-5">
-                <Link href={`/courses/${course.slug}`}>
-                  <Button className="w-full gap-2">
-                    Open course
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      <Card className="rounded-2xl">
-        <div className="flex items-start gap-4">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
-            <Layers3 className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="font-display text-2xl font-bold">Recommended order</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Start with Beginner: Foundation Builder, then Intermediate: Confidence Builder, then Advanced: Fluency & Professional Communication.
-              You can still open any course anytime.
-            </p>
-          </div>
+              </section>
+            );
+          })}
         </div>
-      </Card>
+
+        <aside className="space-y-5">
+          <Card className="rounded-2xl border-lime-200 bg-lime-50 dark:bg-lime-950/20">
+            <div className="flex items-center gap-3">
+              <Trophy className="h-6 w-6 text-lime-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Path progress</p>
+                <p className="font-display text-3xl font-bold">{overallProgress}%</p>
+              </div>
+            </div>
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/70 dark:bg-black/20">
+              <div className="h-full rounded-full bg-lime-500" style={{ width: `${overallProgress}%` }} />
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Daily quests</p>
+            <div className="mt-4 space-y-3">
+              {[
+                { icon: Mic2, text: "Complete 1 speaking node", xp: "+20 XP" },
+                { icon: MessageCircle, text: "Do 1 AI role-play", xp: "+15 XP" },
+                { icon: BookOpenCheck, text: "Review one mistake", xp: "+10 XP" }
+              ].map((quest) => (
+                <div key={quest.text} className="flex items-center justify-between rounded-2xl border border-border bg-background/60 p-3 text-sm">
+                  <span className="flex items-center gap-3">
+                    <quest.icon className="h-4 w-4 text-primary" />
+                    {quest.text}
+                  </span>
+                  <span className="font-semibold text-primary">{quest.xp}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="rounded-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary">Teaching loop</p>
+            <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+              {["Notice a pattern", "Build a sentence", "Say it aloud", "Fix one mistake", "Use it in role-play"].map((step, index) => (
+                <div key={step} className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{index + 1}</span>
+                  {step}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </aside>
+      </div>
     </StudentShell>
   );
 }
